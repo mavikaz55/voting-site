@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅遊地點投票</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .option-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .option-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .option-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .option-title {
+            font-size: 1.3em;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .option-icon {
+            font-size: 2em;
+        }
+
+        .vote-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .vote-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .vote-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .progress-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 30px;
+            color: #333;
+            font-weight: 600;
+            z-index: 1;
+        }
+
+        .total-votes {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 15px;
+        }
+
+        .total-votes-number {
+            font-size: 2em;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .voted-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .confirm-content {
+            background-color: white;
+            margin: 20% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            animation: slideIn 0.3s;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .confirm-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .confirm-option {
+            font-size: 1.2em;
+            color: #667eea;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+
+        .confirm-buttons {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .confirm-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-yes {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .confirm-yes:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .confirm-no {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .confirm-no:hover {
+            background: #dee2e6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗳️ 旅遊地點投票</h1>
+        <p class="subtitle">請選擇您最想去的地方！</p>
+        
+        <div id="votedMessage" class="voted-message" style="display: none;">
+            ✅ 感謝您的投票！
+        </div>
+
+        <div class="option-card">
+            <div class="option-header">
+                <span class="option-title">哈利波特影城</span>
+                <span class="option-icon">🏰</span>
+            </div>
+            <button class="vote-button" onclick="vote(0)">投這個一票</button>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-0" style="width: 0%">
+                </div>
+                <div class="progress-text" id="percent-0">0% (0票)</div>
+            </div>
+        </div>
+
+        <div class="option-card">
+            <div class="option-header">
+                <span class="option-title">迪士尼樂園</span>
+                <span class="option-icon">🎠</span>
+            </div>
+            <button class="vote-button" onclick="vote(1)">投這個一票</button>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-1" style="width: 0%">
+                </div>
+                <div class="progress-text" id="percent-1">0% (0票)</div>
+            </div>
+        </div>
+
+        <div class="option-card">
+            <div class="option-header">
+                <span class="option-title">兩者都去，不去鎌倉</span>
+                <span class="option-icon">✨</span>
+            </div>
+            <button class="vote-button" onclick="vote(2)">投這個一票</button>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-2" style="width: 0%">
+                </div>
+                <div class="progress-text" id="percent-2">0% (0票)</div>
+            </div>
+        </div>
+
+        <div class="total-votes">
+            <p>總投票數</p>
+            <p class="total-votes-number" id="totalVotes">0</p>
+        </div>
+    </div>
+
+    <!-- 確認視窗 -->
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-content">
+            <div class="confirm-title">確認投票</div>
+            <div class="confirm-option" id="confirmOption"></div>
+            <p>您確定要投給這個選項嗎？</p>
+            <div class="confirm-buttons">
+                <button class="confirm-btn confirm-yes" onclick="confirmVote()">確認投票</button>
+                <button class="confirm-btn confirm-no" onclick="cancelVote()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 從 localStorage 獲取投票數據，如果沒有則初始化
+        let votes = JSON.parse(localStorage.getItem('travelVotes')) || [0, 0, 0];
+        let hasVoted = localStorage.getItem('hasVoted') === 'true';
+        let pendingVoteOption = null;
+        
+        const optionNames = ['哈利波特影城 🏰', '迪士尼樂園 🎠', '兩者都去，不去鎌倉 ✨'];
+
+        // 頁面載入時更新顯示
+        updateDisplay();
+
+        function vote(option) {
+            if (hasVoted) {
+                alert('您已經投過票了！每人只能投一票。');
+                return;
+            }
+
+            // 儲存待確認的選項
+            pendingVoteOption = option;
+            
+            // 顯示確認視窗
+            const modal = document.getElementById('confirmModal');
+            const confirmOption = document.getElementById('confirmOption');
+            confirmOption.textContent = optionNames[option];
+            modal.style.display = 'block';
+        }
+
+        function confirmVote() {
+            if (pendingVoteOption === null) return;
+            
+            votes[pendingVoteOption]++;
+            localStorage.setItem('travelVotes', JSON.stringify(votes));
+            localStorage.setItem('hasVoted', 'true');
+            hasVoted = true;
+            
+            // 關閉確認視窗
+            document.getElementById('confirmModal').style.display = 'none';
+            
+            updateDisplay();
+            showVotedMessage();
+            
+            // 禁用所有投票按鈕
+            const buttons = document.querySelectorAll('.vote-button');
+            buttons.forEach(button => {
+                button.disabled = true;
+                button.textContent = '已投票';
+            });
+            
+            pendingVoteOption = null;
+        }
+
+        function cancelVote() {
+            // 關閉確認視窗
+            document.getElementById('confirmModal').style.display = 'none';
+            pendingVoteOption = null;
+        }
+
+        function updateDisplay() {
+            const total = votes.reduce((a, b) => a + b, 0);
+            
+            // 如果已經投過票，禁用按鈕
+            if (hasVoted) {
+                const buttons = document.querySelectorAll('.vote-button');
+                buttons.forEach(button => {
+                    button.disabled = true;
+                    button.textContent = '已投票';
+                });
+            }
+            
+            for (let i = 0; i < votes.length; i++) {
+                const percentage = total > 0 ? (votes[i] / total * 100).toFixed(1) : 0;
+                const progressBar = document.getElementById(`progress-${i}`);
+                const percentText = document.getElementById(`percent-${i}`);
+                
+                progressBar.style.width = `${percentage}%`;
+                percentText.textContent = `${percentage}% (${votes[i]}票)`;
+            }
+            
+            document.getElementById('totalVotes').textContent = total;
+        }
+
+        function showVotedMessage() {
+            const message = document.getElementById('votedMessage');
+            message.style.display = 'block';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+
+        // 點擊模態框外部關閉
+        window.onclick = function(event) {
+            const modal = document.getElementById('confirmModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+                pendingVoteOption = null;
+            }
+        }
+    </script>
+</body>
+</html>
